@@ -1,0 +1,62 @@
+crontab -e
+backup.sh
+Mysql 备份
+
+back.sh
+普通型增量备份
+使用 rsync 可以做增量备份。rsync 提供了 -b ––backup-dir 选项，使用这个选项可以将有变化的文件进行更新同时将其旧版本保存在指定的目录中，从而实现增量备份。 下面是对 /home 进行增量备份的步骤说明： 
+# 第0次备份
+# 首先复制 /home 目录的内容到备份目录 /backups/daily/home.0，
+# rsync -a /home/ /backups/daily/home.0
+# /backups/daily/home.0 总是同步到最新的状态，可以每隔一段时间（如一周）
+# 对其内容进行打包压缩生成归档文件（完全备份）存在 /backups/archive/。
+
+# 第1次备份（此为核心操作）
+# 将 /home 目录的内容同步到目录 /backups/daily/home.0，
+# 并将有变化的文件的旧版本保存到 /backups/daily/home.1，
+# 若每天执行一次，则目录 /backups/daily/home.1 保存了有变化文件一天前的状态。
+# rsync -a --delete -b --backup-dir=/backups/daily/home.1 /home/ /backups/daily/home.0
+
+# 第2次备份
+# 将备份目录 /backups/daily/home.1 更名为 /backups/daily/home.2
+# mv /backups/daily/home.1 /backups/daily/home.2
+# 执行第1次备份的核心操作
+
+# 第n次备份
+# 将早先的备份目录 /backups/daily/home.n 到 /backups/daily/home.1
+# 依次更名为 /backups/daily/home.(n+1) 到 /backups/daily/home.2
+# 执行第1次备份的核心操作
+
+backupshell.sh
+快照型增量备份
+使用 rsync 可以做快照（Snapshot）型增量备份。每一个快照都相当于一个完全备份。其核心思想是：对有变化的文件进行复制；对无变化的文件创建硬链接以减少磁盘占用。
+下面是对 /home 进行快照型增量备份的步骤说明
+# 第0次备份
+# 首先复制 /home 目录的内容到备份目录 /backups/home.0
+# rsync -a /home/ /backups/home.0
+
+# 第1次备份（此为核心操作）
+# 以硬链接形式复制 /backups/home.0 到 /backups/home.1
+# cp -al /backups/home.0 /backups/home.1
+# 将 /home 目录的内容同步到目录 /backups/home.0
+# （rsync 在发现变化的文件时，先删除之，然后在创建该文件）
+# rsync -a --delete /home/ /backups/home.0
+
+# 第2次备份
+# 将备份目录 /backups/home.1 更名为 /backups/home.2
+# mv /backups/home.1 /backups/home.2
+# 执行第1次备份的核心操作
+
+# 第n次备份
+# 将早先的备份目录 /backups/home.n 到 /backups/home.1
+# 依次更名为 /backups/home.(n+1) 到 /backups/home.2
+# 执行第1次备份的核心操作
+
+ rsync 2.5.6 版本之后提供了 ––link-dest 选项，如下两条核心操作命令：
+
+cp -al /backups/home.0 /backups/home.1
+rsync -a --delete /home/ /backups/home.0
+
+可以简化为如下的一条命令：
+
+rsync -a --delete --link-dest=/backups/home.1 /home/ /backups/home.0
