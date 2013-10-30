@@ -50,6 +50,7 @@ function exebackup()
 		BackupSou=${cfgvalue[$[n+1]]}
 		rsync -av --progress root@${BackupIp}:${BackupSou} ${BackupDes} > /dev/null 
                 if [ $? != 0 ]; then
+                  kill -9 $printflag
                   TIME=`date +%Y%m%d-%H%M`
                   echo "${TIME}">>/root/Desktop/log.txt
                   echo "backup file and dir false" >> /root/Desktop/log.txt
@@ -75,6 +76,7 @@ function exebackup()
 		NAME_1="$MysqlDB-$DB_TIME"
                 mysqldump -u ${MysqlUser} -p${MysqlPasswd} -h ${MysqlIp} --database ${MysqlDB} > ${BackupDes}/${NAME_1}.sql 
                 if [ $? != 0 ]; then
+                   kill -9 $printflag
                    TIME=`date +%Y%m%d-%H%M`
                    echo "${TIME}">>/root/Desktop/log.txt
                    echo "backup database file false" >> /root/Desktop/log.txt
