@@ -34,7 +34,7 @@ function exebackup()
            printsign 
         done &
         printflag=$!
-        echo $printflag
+        
 	num=0
 	for k in ${cfgname[@]}; do 
 	  if [ $k = 'dir' -o $k = 'file' ]; then 
@@ -113,16 +113,16 @@ HELP
 elif [ $# -eq 1 -a $1 = 'all' ]; then
 	echo "back up all file"
         find . -maxdepth 1 -name "*.cfg" -type f  | sed 's/^.\///' > tmp.txt  #sed 语句去除./
-        kk=0
+        num=0
         exec <  tmp.txt
 		while read line
 		do
                           echo $line
-                          jj[kk]=$line
-                          ((kk++))
+                          file[num]=$line
+                          ((num++))
 		done 
                 
-                for i in ${jj[@]}; do
+                for i in ${file[@]}; do
                         echo -e "begin backup $i\n"
                         cfgfile=$i
                         readcfg
